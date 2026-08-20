@@ -1,6 +1,7 @@
 **/bin/
 **/obj/
 **/publish/
+publish*/
 **/artifacts/
 **/TestResults/
 **/BenchmarkDotNet.Artifacts/
@@ -33,3 +34,4 @@ coverage*.lcov
 .DS_Store
 Thumbs.db
 Desktop.ini
+/org
