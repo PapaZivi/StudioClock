@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>StudioClock</AssemblyName>
+    <RootNamespace>StudioClock</RootNamespace>
+    <Version>202608.1</Version>
+    <AssemblyVersion>2026.8.1.0</AssemblyVersion>
+    <FileVersion>2026.8.1.0</FileVersion>
+    <ApplicationTitle>StudioClock</ApplicationTitle>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.9" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.9" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.9" />
+    <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.9" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
+  </ItemGroup>
+</Project>
