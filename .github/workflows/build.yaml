@@ -2,11 +2,8 @@ name: Build StudioClock
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    tags:
-      - "v*"
+  release:
+    types: [published]
 
 permissions:
   contents: read
