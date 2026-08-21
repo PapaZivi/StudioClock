@@ -1,0 +1,296 @@
+name: Build StudioClock
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+env:
+  PROJECT: StudioClock/StudioClock.csproj
+  DOTNET_VERSION: 10.0.x
+
+jobs:
+
+  # ------------------------------------------------------------
+  # Windows x64 / x86
+  # ------------------------------------------------------------
+  windows:
+    name: Windows ${{ matrix.arch }}
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            rid: win-x64
+          - arch: x86
+            rid: win-x86
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore $env:PROJECT
+
+      - name: Test
+        run: dotnet test -c Release --no-restore
+
+      - name: Read version
+        id: version
+        shell: pwsh
+        run: |
+          $version = dotnet msbuild $env:PROJECT -getProperty:Version
+          $version = $version.Trim()
+          "version=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "Version: $version"
+
+      - name: Publish
+        shell: pwsh
+        run: |
+          dotnet publish $env:PROJECT `
+            -c Release `
+            -r ${{ matrix.rid }} `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:PublishTrimmed=true `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            -o publish/${{ matrix.rid }}
+
+      - name: Rename executable
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $source = "publish/${{ matrix.rid }}/StudioClock.exe"
+          $target = "publish/StudioClock-$version-windows-${{ matrix.arch }}.exe"
+
+          Copy-Item $source $target
+
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: StudioClock-${{ steps.version.outputs.version }}-windows-${{ matrix.arch }}
+          path: publish/StudioClock-${{ steps.version.outputs.version }}-windows-${{ matrix.arch }}.exe
+          if-no-files-found: error
+
+
+  # ------------------------------------------------------------
+  # macOS Apple Silicon
+  # ------------------------------------------------------------
+  macos-arm64:
+    name: macOS Apple Silicon
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore "$PROJECT"
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(dotnet msbuild "$PROJECT" -getProperty:Version | xargs)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      - name: Publish
+        run: |
+          dotnet publish "$PROJECT" \
+            -c Release \
+            -r osx-arm64 \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:PublishTrimmed=false \
+            -p:UseAppHost=true \
+            -p:DebugType=None \
+            -p:DebugSymbols=false \
+            -o publish/osx-arm64
+
+      - name: Create app bundle
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          APP="package/StudioClock.app"
+
+          mkdir -p "$APP/Contents/MacOS"
+          mkdir -p "$APP/Contents/Resources"
+
+          cp -a publish/osx-arm64/. "$APP/Contents/MacOS/"
+
+          chmod +x "$APP/Contents/MacOS/StudioClock"
+
+          cat > "$APP/Contents/Info.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+            "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleExecutable</key>
+            <string>StudioClock</string>
+
+            <key>CFBundleIdentifier</key>
+            <string>de.studioclock.app</string>
+
+            <key>CFBundleName</key>
+            <string>StudioClock</string>
+
+            <key>CFBundleDisplayName</key>
+            <string>StudioClock</string>
+
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+
+            <key>CFBundleVersion</key>
+            <string>${VERSION}</string>
+
+            <key>CFBundleShortVersionString</key>
+            <string>${VERSION}</string>
+
+            <key>NSHighResolutionCapable</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Package app
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          ditto \
+            -c \
+            -k \
+            --sequesterRsrc \
+            --keepParent \
+            package/StudioClock.app \
+            "StudioClock-${VERSION}-macOS-arm64.zip"
+
+      - name: Upload macOS app
+        uses: actions/upload-artifact@v7
+        with:
+          name: StudioClock-${{ steps.version.outputs.version }}-macOS-arm64
+          path: StudioClock-${{ steps.version.outputs.version }}-macOS-arm64.zip
+          if-no-files-found: error
+
+
+  # ------------------------------------------------------------
+  # macOS Intel
+  # ------------------------------------------------------------
+  macos-x64:
+    name: macOS Intel
+    runs-on: macos-15-intel
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore "$PROJECT"
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(dotnet msbuild "$PROJECT" -getProperty:Version | xargs)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      - name: Publish
+        run: |
+          dotnet publish "$PROJECT" \
+            -c Release \
+            -r osx-x64 \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:PublishTrimmed=false \
+            -p:UseAppHost=true \
+            -p:DebugType=None \
+            -p:DebugSymbols=false \
+            -o publish/osx-x64
+
+      - name: Create app bundle
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          APP="package/StudioClock.app"
+
+          mkdir -p "$APP/Contents/MacOS"
+          mkdir -p "$APP/Contents/Resources"
+
+          cp -a publish/osx-x64/. "$APP/Contents/MacOS/"
+
+          chmod +x "$APP/Contents/MacOS/StudioClock"
+
+          cat > "$APP/Contents/Info.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+            "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleExecutable</key>
+            <string>StudioClock</string>
+
+            <key>CFBundleIdentifier</key>
+            <string>de.studioclock.app</string>
+
+            <key>CFBundleName</key>
+            <string>StudioClock</string>
+
+            <key>CFBundleDisplayName</key>
+            <string>StudioClock</string>
+
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+
+            <key>CFBundleVersion</key>
+            <string>${VERSION}</string>
+
+            <key>CFBundleShortVersionString</key>
+            <string>${VERSION}</string>
+
+            <key>NSHighResolutionCapable</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Package app
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          ditto \
+            -c \
+            -k \
+            --sequesterRsrc \
+            --keepParent \
+            package/StudioClock.app \
+            "StudioClock-${VERSION}-macOS-x64.zip"
+
+      - name: Upload macOS app
+        uses: actions/upload-artifact@v7
+        with:
+          name: StudioClock-${{ steps.version.outputs.version }}-macOS-x64
+          path: StudioClock-${{ steps.version.outputs.version }}-macOS-x64.zip
+          if-no-files-found: error
