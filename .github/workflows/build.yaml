@@ -30,8 +30,10 @@ jobs:
         include:
           - arch: x64
             rid: win-x64
+            filename: StudioClock64.exe
           - arch: x86
             rid: win-x86
+            filename: StudioClock32.exe
 
     steps:
       - name: Checkout
@@ -42,20 +44,8 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore
-        run: dotnet restore StudioClock.slnx
-
       - name: Test
-        run: dotnet test StudioClock.slnx -c Release --no-restore
-
-      - name: Read version
-        id: version
-        shell: pwsh
-        run: |
-          $version = dotnet msbuild $env:PROJECT -getProperty:Version
-          $version = $version.Trim()
-          "version=$version" >> $env:GITHUB_OUTPUT
-          Write-Host "Version: $version"
+        run: dotnet test StudioClock.slnx -c Release
 
       - name: Publish
         shell: pwsh
@@ -74,17 +64,16 @@ jobs:
       - name: Rename executable
         shell: pwsh
         run: |
-          $version = "${{ steps.version.outputs.version }}"
           $source = "publish/${{ matrix.rid }}/StudioClock.exe"
-          $target = "publish/StudioClock-$version-windows-${{ matrix.arch }}.exe"
+          $target = "publish/${{ matrix.filename }}"
 
           Copy-Item $source $target
 
       - name: Upload Windows executable
         uses: actions/upload-artifact@v7
         with:
-          name: StudioClock-${{ steps.version.outputs.version }}-windows-${{ matrix.arch }}
-          path: publish/StudioClock-${{ steps.version.outputs.version }}-windows-${{ matrix.arch }}.exe
+          name: StudioClock-windows-${{ matrix.arch }}
+          path: publish/${{ matrix.filename }}
           if-no-files-found: error
 
 
