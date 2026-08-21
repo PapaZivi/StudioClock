@@ -4,13 +4,17 @@
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>StudioClock</AssemblyName>
     <RootNamespace>StudioClock</RootNamespace>
-    <Version>2026.08.2.3</Version>
-    <AssemblyVersion>2026.8.2.3</AssemblyVersion>
-    <FileVersion>2026.8.2.3</FileVersion>
+    <Version>2026.08.2.5</Version>
+    <AssemblyVersion>2026.8.2.5</AssemblyVersion>
+    <FileVersion>2026.8.2.5</FileVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <ApplicationTitle>StudioClock</ApplicationTitle>
+    <ApplicationIcon>Assets\StudioClock.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\StudioClock.ico" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.9" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />

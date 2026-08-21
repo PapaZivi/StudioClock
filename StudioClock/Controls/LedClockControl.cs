@@ -38,7 +38,6 @@ public sealed class LedClockControl : Control
         var ringRadius = side * .445;
         var normal = Math.Max(1.2, side * .008);
         var major = normal * 1.65;
-        var activeCount = ClockMath.ActiveLedCount(_now.Second);
         var activeBrush = new SolidColorBrush(LedColor);
         var inactiveBrush = new SolidColorBrush(Color.FromArgb(55, LedColor.R, LedColor.G, LedColor.B));
         for (var i = 0; i < 60; i++)
@@ -46,7 +45,7 @@ public sealed class LedClockControl : Control
             var angle = i * Math.PI / 30 - Math.PI / 2;
             var p = new Point(center.X + Math.Cos(angle) * ringRadius, center.Y + Math.Sin(angle) * ringRadius);
             var radius = ClockMath.IsMajorLed(i) ? major : normal;
-            context.DrawEllipse(i < activeCount ? activeBrush : inactiveBrush, null, p, radius, radius);
+            context.DrawEllipse(ClockMath.IsSecondLedActive(i, _now.Second) ? activeBrush : inactiveBrush, null, p, radius, radius);
         }
 
         DrawTime(context, ClockMath.TimeText(_now, CultureInfo.CurrentCulture), center, side);
@@ -81,4 +80,3 @@ public sealed class LedClockControl : Control
         }
     }
 }
-
