@@ -43,10 +43,10 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore $env:PROJECT
+        run: dotnet restore StudioClock.slnx
 
       - name: Test
-        run: dotnet test -c Release --no-restore
+        run: dotnet test StudioClock.slnx -c Release --no-restore
 
       - name: Read version
         id: version
