@@ -302,10 +302,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
+          REPO: ${{ github.repository }}
         run: |
           gh release upload "$TAG" \
             artifacts/StudioClock-windows-x64/StudioClock64.exe \
             artifacts/StudioClock-windows-x86/StudioClock32.exe \
             artifacts/StudioClock-macOS-arm64/StudioClock-AppleSilicon.zip \
             artifacts/StudioClock-macOS-x64/StudioClock-Intel.zip \
+            --repo "$REPO" \
             --clobber
