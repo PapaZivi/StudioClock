@@ -6,7 +6,7 @@ on:
     types: [published]
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   PROJECT: StudioClock/StudioClock.csproj
@@ -63,7 +63,6 @@ jobs:
         run: |
           $source = "publish/${{ matrix.rid }}/StudioClock.exe"
           $target = "publish/${{ matrix.filename }}"
-
           Copy-Item $source $target
 
       - name: Upload Windows executable
@@ -160,21 +159,19 @@ jobs:
 
       - name: Package app
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-
           ditto \
             -c \
             -k \
             --sequesterRsrc \
             --keepParent \
             package/StudioClock.app \
-            "StudioClock-${VERSION}-macOS-arm64.zip"
+            StudioClock-AppleSilicon.zip
 
       - name: Upload macOS app
         uses: actions/upload-artifact@v7
         with:
-          name: StudioClock-${{ steps.version.outputs.version }}-macOS-arm64
-          path: StudioClock-${{ steps.version.outputs.version }}-macOS-arm64.zip
+          name: StudioClock-macOS-arm64
+          path: StudioClock-AppleSilicon.zip
           if-no-files-found: error
 
 
@@ -264,19 +261,51 @@ jobs:
 
       - name: Package app
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-
           ditto \
             -c \
             -k \
             --sequesterRsrc \
             --keepParent \
             package/StudioClock.app \
-            "StudioClock-${VERSION}-macOS-x64.zip"
+            StudioClock-Intel.zip
 
       - name: Upload macOS app
         uses: actions/upload-artifact@v7
         with:
-          name: StudioClock-${{ steps.version.outputs.version }}-macOS-x64
-          path: StudioClock-${{ steps.version.outputs.version }}-macOS-x64.zip
+          name: StudioClock-macOS-x64
+          path: StudioClock-Intel.zip
           if-no-files-found: error
+
+
+  # ------------------------------------------------------------
+  # Attach artifacts to published GitHub Release
+  # ------------------------------------------------------------
+  release-assets:
+    name: Attach files to release
+    if: github.event_name == 'release'
+    needs:
+      - windows
+      - macos-arm64
+      - macos-x64
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+
+      - name: Show downloaded files
+        run: find artifacts -type f
+
+      - name: Upload assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release upload "$TAG" \
+            artifacts/StudioClock-windows-x64/StudioClock64.exe \
+            artifacts/StudioClock-windows-x86/StudioClock32.exe \
+            artifacts/StudioClock-macOS-arm64/StudioClock-AppleSilicon.zip \
+            artifacts/StudioClock-macOS-x64/StudioClock-Intel.zip \
+            --clobber
