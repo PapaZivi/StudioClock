@@ -4,9 +4,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>StudioClock</AssemblyName>
     <RootNamespace>StudioClock</RootNamespace>
-    <Version>2026.08.2.1</Version>
-    <AssemblyVersion>2026.8.2.1</AssemblyVersion>
-    <FileVersion>2026.8.2.1</FileVersion>
+    <Version>2026.08.2.3</Version>
+    <AssemblyVersion>2026.8.2.3</AssemblyVersion>
+    <FileVersion>2026.8.2.3</FileVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <ApplicationTitle>StudioClock</ApplicationTitle>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
