@@ -1,62 +1,54 @@
 # StudioClock
 
-StudioClock ist eine minimalistische, randlose LED-Desktopuhr für Windows und macOS. Ziffern und der Sekundenkranz werden vollständig mathematisch durch ein eigenes Avalonia-Control gezeichnet; es werden keine fremden Fonts, Grafiken oder Uhr-Assets verwendet.
+StudioClock ist eine minimalistische, randlose Desktop-Uhr für Windows und macOS. Sie kann frei auf dem Bildschirm platziert werden und bleibt beispielsweise während Online-Meetings unauffällig sichtbar, ohne den Blick unnötig vom Geschehen abzulenken.
 
-> Screenshot-Platzhalter: `docs/screenshot.png`
+## Funktionen
 
-## Voraussetzungen und Build
+- Randloses, frei verschiebbares und skalierbares Uhrenfenster
+- Ruhige LED-Matrix für Stunden und Minuten
+- LED-Sekundenring mit hervorgehobenen Fünf-Sekunden-Markierungen
+- Always on top und einstellbare Transparenz
+- Wählbare Uhr-, Hintergrund- und Ringfarben
+- Anzeigen und Verstecken über Tray- beziehungsweise Menüleisten-Icon
+- Optionaler Autostart und persistente Einstellungen
+- Windows x64/x86 sowie macOS auf Apple Silicon und Intel
 
-- .NET SDK 10
-- Windows 10/11 oder eine aktuelle macOS-Version
+## Download
 
-```powershell
-dotnet restore
-dotnet build
-dotnet test
-```
+Fertige Versionen stehen unter [GitHub Releases](https://github.com/PapaZivi/StudioClock/releases) bereit:
 
-Self-contained Builds:
+- `StudioClock64.exe` – aktuelles 64-Bit-Windows
+- `StudioClock32.exe` – 32-Bit-Windows
+- `StudioClock-AppleSilicon.zip` – aktuelle Macs mit Apple Silicon
+- `StudioClock-Intel.zip` – ältere Intel-Macs
 
-```powershell
-dotnet publish StudioClock/StudioClock.csproj -c Release -r win-x64 --self-contained true
-dotnet publish StudioClock/StudioClock.csproj -c Release -r win-arm64 --self-contained true
-dotnet publish StudioClock/StudioClock.csproj -c Release -r osx-x64 --self-contained true
-dotnet publish StudioClock/StudioClock.csproj -c Release -r osx-arm64 --self-contained true
-```
-
-Windows erzeugt `StudioClock.exe` ohne Konsolenfenster. Die macOS-Ausgabe muss auf einem Mac in eine `.app`-Bundle-Struktur verpackt und für die Verteilung mit Apple Developer ID signiert/notarisiert werden; Cross-Publishing erzeugt die Binärdateien, ersetzt aber weder Code-Signing noch Notarisierung.
+Unter Windows kann die EXE direkt gestartet werden. Unter macOS das ZIP entpacken und die enthaltene App verwenden. Hinweise des Betriebssystems zu nicht signierten beziehungsweise nicht notarisierten Builds beachten.
 
 ## Bedienung
 
-- Linke Maustaste: Fenster an freien Flächen verschieben; an Kanten und Ecken skalieren.
-- Rechtsklick: Always on top, Gesamtfenster-Transparenz, Verstecken, Einstellungen, About oder Beenden.
-- Tray-/Menüleisten-Icon: Linksklick schaltet das Fenster sichtbar/unsichtbar; das Rechtsklickmenü bietet dieselben Aktionen.
-- Die Uhr nutzt automatisch das 12-/24-Stundenformat der aktuellen System-Culture.
-- Der Ring besitzt exakt 60 Positionen, beginnt oben, füllt im Uhrzeigersinn und wird bei Sekunde 0 geleert. Fünf-Sekunden-LEDs sind auf demselben Kreis größer.
+- Linksklick und Ziehen auf der Uhr: Fenster verschieben
+- Rand oder Ecke ziehen: Größe ändern
+- Rechtsklick auf die Uhr: Kontextmenü öffnen
+- Linksklick auf das Tray-/Menüleisten-Icon: anzeigen oder verstecken
+- Rechtsklick auf das Tray-/Menüleisten-Icon: Menü öffnen
 
 ## Einstellungen
 
-Gespeichert werden Fensterposition/-größe, Always-on-top, Transparenzschalter und -wert, Uhr-, Hintergrund- und Ringfarbe sowie Autostart. Fehlende, unvollständige oder beschädigte JSON-Dateien werden sicher auf Standardwerte zurückgeführt.
+StudioClock speichert Fensterposition und -größe, Always on top, Transparenz, Farben und Autostart lokal.
 
 - Windows: `%APPDATA%\StudioClock\settings.json`
-- macOS: `~/Library/Application Support/StudioClock/settings.json` (über `Environment.SpecialFolder.ApplicationData`)
+- macOS: `~/Library/Application Support/StudioClock/settings.json`
 
-Autostart verwendet unter Windows `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` ohne Administratorrechte. Unter macOS wird der Benutzer-LaunchAgent `~/Library/LaunchAgents/de.studioclock.app.plist` angelegt. Nach Verschieben einer App sollte Autostart einmal aus- und wieder eingeschaltet werden, damit der Programmpfad aktualisiert wird.
+## Lizenz
 
-## Architektur und Abhängigkeiten
+StudioClock is open-source software licensed under the GNU Affero General Public License Version 3 only (`AGPL-3.0-only`).
 
-- `Controls`: plattformfreies Dot-Matrix-/Ring-Rendering und testbare Geometrie
-- `Models`, `Helpers`, `Services`: Settings, Koordination und lokale Named-Mutex-/Named-Pipe-Single-Instance-Logik
-- `Platform/Windows`, `Platform/MacOS`: gekapselter Autostart
-- `Views`: Hauptfenster und Dialoge
-- `StudioClock.Tests`: Logik-, Persistenz- und Fensterplatzierungstests
+Commercial use is permitted under the AGPL as long as its terms are followed.
 
-Externe Pakete sind auf Avalonia Desktop, Fluent Theme, Inter-Fallbackfont und Avalonias ColorPicker begrenzt; xUnit und Microsoft.NET.Test.Sdk werden nur für Tests verwendet.
+For use cases where the AGPL requirements are not suitable, a separate commercial/proprietary license may be available.
 
-## Versionierung
+Commercial licensing inquiries: `info@papazivi.de`
 
-Versionen folgen `YYYYMM.CNT` ohne führende Null im Monatszähler. Die zentrale Version in `StudioClock.csproj` ist `202608.1` und wird im About-Dialog aus den Assemblyinformationen gelesen.
+See [LICENSE](LICENSE) and [COMMERCIAL.md](COMMERCIAL.md). Entwickler und Selbstbauer finden technische Hinweise in [DEVELOPMENT.md](DEVELOPMENT.md).
 
-## Plattformspezifische Hinweise
-
-Die Windows-Funktionen werden lokal gebaut und getestet. macOS-Status-Item, LaunchAgent, Intel-/Apple-Silicon-Publish und `.app`-Packaging müssen abschließend auf echter macOS-Hardware geprüft werden. Verhalten von Tray-Linksklicks kann vom Desktop-Environment abhängen. Monitorpositionen werden beim Start gegen Avalonias aktuelle Screen-Arbeitsbereiche geprüft; bei entfernten Displays wird auf den primären Bildschirm zentriert.
+Copyright © 2026 PapaZivi
